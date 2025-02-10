@@ -3,62 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hug Day - Special Moment</title>
+    <title>Catch Hugs and Hearts</title>
     <style>
         body {
-            background: linear-gradient(45deg, #ff7eb3, #ff758c, #ff6a88);
-            font-family: 'Poppins', sans-serif;
-            color: white;
             text-align: center;
-            height: 100vh;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            position: relative;
+            font-family: Arial, sans-serif;
+            background-color: #ffccf9;
             overflow: hidden;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-
+        canvas {
+            border: 2px solid black;
+            background-color: white;
+            width: 100vw;
+            height: 90vh;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            background-color: #ff66b2;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ff3385;
+            transform: scale(1.1);
+        }
         h1 {
-            font-size: 2.5rem;
-            text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
-            margin-bottom: 20px;
-        }
-
-        .quote {
-            font-size: 1.5rem;
-            font-style: italic;
-            margin-top: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .back-button {
+            color: #ff3385;
+            font-size: 48px;
+            text-shadow: 4px 4px white;
             position: absolute;
             top: 20px;
-            left: 20px;
-            background-color: #ff4d94;
-            color: white;
-            font-size: 1.2rem;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
+            width: 100%;
         }
-
-        .back-button:hover {
-            background-color: #ff66b2;
+        #startButton {
+            margin-top: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        #videoContainer {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: black;
+        }
+        #videoContainer video {
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
-<body><a href="https://genxshravanop.github.io/Valentine_Week_For_Manu/celebrate.html"
-    <button class="back-button">Back to Celebrate</button></a>
-    <h1>💖</h1>
-    <div class="quote">
-        <p><br><br></p>
+<body>
+    <h1>Catch Hugs and Hearts</h1>
+    <button id="startButton" onclick="startGame()">Start Game</button>
+    <canvas id="gameCanvas"></canvas>
+    <div class="controls">
+        <button onclick="restartGame()">Restart</button>
     </div>
+    <div id="videoContainer">
+        <video id="endVideo" controls autoplay>
+            <source src="Ghaghrafinal1.MP4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight * 0.9;
+
+        let player = { x: canvas.width / 2 - 25, y: canvas.height - 30, width: 80, height: 15 };
+        let items = [];
+        let gameOver = false;
+        let heartsCollected = 0;
+        let hugsCollected = 0;
+
+        function startGame() {
+            document.getElementById("startButton").style.display = "none";
+            items = [];
+            gameOver = false;
+            heartsCollected = 0;
+            hugsCollected = 0;
+            document.addEventListener("mousemove", movePlayerMouse);
+            setInterval(() => generateItem("❤️"), 1000);
+            setInterval(() => generateItem("🤗"), 1000);
+            setInterval(() => generateItem("💣"), 2000);
+            gameLoop();
+        }
+
+        function restartGame() {
+            startGame();
+        }
+
+        function movePlayerMouse(event) {
+            player.x = event.clientX - player.width / 2;
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+        }
+
+        function generateItem(type) {
+            let x = Math.random() * (canvas.width - 30);
+            let y = -30;
+            items.push({ x, y, type });
+        }
+
+        function gameLoop() {
+            if (gameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "black";
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            items.forEach((item, index) => {
+                ctx.font = "30px Arial";
+                ctx.fillText(item.type, item.x, item.y);
+                item.y += 2;
+                
+                if (item.y > player.y && item.y < player.y + 10 && item.x > player.x && item.x < player.x + player.width) {
+                    if (item.type === "❤️") heartsCollected++;
+                    if (item.type === "🤗") hugsCollected++;
+                    if (item.type === "💣") gameOver = true;
+                    items.splice(index, 1);
+                }
+            });
+            
+            ctx.fillStyle = "black";
+            ctx.fillText(`Hearts: ${heartsCollected}/25`, 10, 30);
+            ctx.fillText(`Hugs: ${hugsCollected}/25`, 10, 60);
+            
+            if (heartsCollected >= 25 && hugsCollected >= 25) {
+                setTimeout(() => {
+                    document.getElementById("videoContainer").style.display = "block";
+                    setTimeout(() => {
+                        window.location.href = "redirect.html";
+                    }, 25000);
+                }, 500);
+                return;
+            }
+            
+            if (!gameOver) requestAnimationFrame(gameLoop);
+            else alert("Game Over! You hit a bomb! 💣");
+        }
+    </script>
 </body>
 </html>
